@@ -8,39 +8,65 @@ import com.etraveligroup.service.RentalStatementService;
 import com.etraveligroup.serviceImpl.FrequentPointServiceImpl;
 import com.etraveligroup.serviceImpl.RentalStatementServiceImpl;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class ApplicationController {
   public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+
     try {
-      String expected = "Rental Record for Customer1\n\tYou've Got Mail\t3.5\n\tMatrix\t2.0\nAmount owed is 5.5\nYou earned 2 frequent points\n";
+      // Ask for customer's name
+      System.out.print("Enter customer's name: ");
+      String customerName = scanner.nextLine();
+
+      // Initialize the MovieRepository
       MovieRepository movieRepo = new MovieRepository();
 
-      // Create customer with rentals
-      Customer customer = new Customer("Customer1", Arrays.asList(
-              new MovieRental(movieRepo.getMovie("F001"), 3),
-              new MovieRental(movieRepo.getMovie("F002"), 1)
-      ));
+      // Create a list to hold movie rentals
+      List<MovieRental> rentals = new ArrayList<>();
+
+      // Ask for movie rentals
+      while (true) {
+        System.out.print("Enter movie ID (or 'done' to finish): ");
+        String movieId = scanner.nextLine();
+
+        if (movieId.equalsIgnoreCase("done")) {
+          break;
+        }
+
+        // Check if the movie ID exists in the repository
+        if (movieRepo.getMovie(movieId) == null) {
+          System.out.println("Invalid movie ID. Try again.");
+          continue;
+        }
+
+        // Ask for rental duration (in days)
+        System.out.print("Enter number of days for rental: ");
+        int days = Integer.parseInt(scanner.nextLine());
+
+        // Add the rental to the list
+        rentals.add(new MovieRental(movieRepo.getMovie(movieId), days));
+      }
 
       // Create the FrequentPointsService and RentalStatementService with dependency injection
       FrequentPointsService pointsService = new FrequentPointServiceImpl();
       RentalStatementService statementService = new RentalStatementServiceImpl(pointsService);
 
+      // Create the customer with the provided rentals
+      Customer customer = new Customer(customerName, rentals);
+
       // Generate rental statement
       String result = statementService.generateStatement(customer);
 
-      // Output the result and compare with expected
+      // Output the rental statement
       System.out.println(result);
-      if (!result.equals(expected)) {
-        throw new AssertionError("Expected: " + System.lineSeparator() + expected + System.lineSeparator() +
-                "Got: " + System.lineSeparator() + result);
-      }
-    } catch (AssertionError e) {
-      System.err.println("Assertion failed: " + e.getMessage());
-      e.printStackTrace();
+
     } catch (Exception e) {
-      System.err.println("An unexpected error occurred: " + e.getMessage());
-      e.printStackTrace();
+      System.err.println("An error occurred: " + e.getMessage());
+    } finally {
+      scanner.close();
     }
   }
 }
