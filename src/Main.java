@@ -11,6 +11,6 @@ public class Main {
       throw new AssertionError("Expected: " + System.lineSeparator() + String.format(expected) + System.lineSeparator() + System.lineSeparator() + "Got: " + System.lineSeparator() + result);
     }
 
-    System.out.println("Success");
+    //System.out.println("Success");
   }
 }
